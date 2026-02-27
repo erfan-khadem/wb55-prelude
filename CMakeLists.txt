@@ -45,11 +45,18 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
+    "Core/Src/sensors/app_sensors.c"
+    "Core/Src/sensors/mlx90614.c"
+    "Core/Src/sensors/scd41.c"
+    "Core/Src/sensors/sensirion_crc.c"
+    "Core/Src/sensors/sht40.c"
+    "Core/Src/sensors/usb_vcp.c"
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    "Core/Inc/sensors"
 )
 
 # Add project symbols (macros)

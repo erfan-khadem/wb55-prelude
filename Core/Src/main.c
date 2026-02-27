@@ -22,6 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "app_sensors.h"
 
 /* USER CODE END Includes */
 
@@ -106,6 +107,7 @@ int main(void)
   MX_RTC_Init();
   MX_USB_Device_Init();
   /* USER CODE BEGIN 2 */
+  Sensors_Init();
 
   /* USER CODE END 2 */
 
@@ -113,6 +115,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    Sensors_Task();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

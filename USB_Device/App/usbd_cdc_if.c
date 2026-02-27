@@ -22,6 +22,7 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
+#include "usb_vcp.h"
 
 /* USER CODE END INCLUDE */
 
@@ -311,6 +312,8 @@ static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
   UNUSED(Buf);
   UNUSED(Len);
   UNUSED(epnum);
+
+  g_usb_cdc_tx_ready = 1;
   /* USER CODE END 13 */
   return result;
 }
