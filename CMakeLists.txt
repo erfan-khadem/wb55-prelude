@@ -45,6 +45,8 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
+    "STM32_WPAN/App/app_ble.c"
+    "STM32_WPAN/App/custom_stm.c"
     "Core/Src/sensors/app_sensors.c"
     "Core/Src/sensors/mlx90614.c"
     "Core/Src/sensors/scd41.c"

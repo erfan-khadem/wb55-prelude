@@ -18,6 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os2.h"
+#include "FreeRTOS.h"
 #include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -48,6 +50,13 @@ IPCC_HandleTypeDef hipcc;
 
 RTC_HandleTypeDef hrtc;
 
+/* Definitions for defaultTask */
+osThreadId_t defaultTaskHandle;
+const osThreadAttr_t defaultTask_attributes = {
+  .name = "defaultTask",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -59,6 +68,9 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_IPCC_Init(void);
 static void MX_RTC_Init(void);
+static void MX_RF_Init(void);
+void StartDefaultTask(void *argument);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -83,6 +95,8 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
+  /* Config code for STM32_WPAN (HSE Tuning must be done before system clock configuration) */
+  MX_APPE_Config();
 
   /* USER CODE BEGIN Init */
 
@@ -105,17 +119,55 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_RTC_Init();
+  MX_RF_Init();
   MX_USB_Device_Init();
   /* USER CODE BEGIN 2 */
-  Sensors_Init();
 
   /* USER CODE END 2 */
+
+  /* Init scheduler */
+  osKernelInitialize();
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* creation of defaultTask */
+  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
+
+  /* Init code for STM32_WPAN */
+  MX_APPE_Init();
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    Sensors_Task();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -206,7 +258,8 @@ void PeriphCommonClock_Config(void)
 
   /** Initializes the peripherals clock
   */
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SMPS;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SMPS|RCC_PERIPHCLK_RFWAKEUP;
+  PeriphClkInitStruct.RFWakeUpClockSelection = RCC_RFWKPCLKSOURCE_HSE_DIV1024;
   PeriphClkInitStruct.SmpsClockSelection = RCC_SMPSCLKSOURCE_HSI;
   PeriphClkInitStruct.SmpsDivSelection = RCC_SMPSCLKDIV_RANGE1;
 
@@ -294,6 +347,27 @@ static void MX_IPCC_Init(void)
 }
 
 /**
+  * @brief RF Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RF_Init(void)
+{
+
+  /* USER CODE BEGIN RF_Init 0 */
+
+  /* USER CODE END RF_Init 0 */
+
+  /* USER CODE BEGIN RF_Init 1 */
+
+  /* USER CODE END RF_Init 1 */
+  /* USER CODE BEGIN RF_Init 2 */
+
+  /* USER CODE END RF_Init 2 */
+
+}
+
+/**
   * @brief RTC Initialization Function
   * @param None
   * @retval None
@@ -313,8 +387,8 @@ static void MX_RTC_Init(void)
   */
   hrtc.Instance = RTC;
   hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
-  hrtc.Init.AsynchPrediv = 127;
-  hrtc.Init.SynchPrediv = 255;
+  hrtc.Init.AsynchPrediv = CFG_RTC_ASYNCH_PRESCALER;
+  hrtc.Init.SynchPrediv = CFG_RTC_SYNCH_PRESCALER;
   hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
   hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
   hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
@@ -378,6 +452,48 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+  * @brief  Function implementing the defaultTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void *argument)
+{
+  /* USER CODE BEGIN 5 */
+  Sensors_Init();
+  /* Infinite loop */
+  for(;;)
+  {
+    Sensors_Task();
+    osDelay(10);
+  }
+  /* USER CODE END 5 */
+}
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM1 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM1)
+  {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

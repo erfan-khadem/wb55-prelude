@@ -1,5 +1,15 @@
 #include "sht40.h"
 #include "sensirion_crc.h"
+#include "cmsis_os2.h"
+
+static void sht40_delay_ms(uint32_t delay_ms)
+{
+    if (osKernelGetState() == osKernelRunning) {
+        osDelay(delay_ms);
+    } else {
+        HAL_Delay(delay_ms);
+    }
+}
 
 HAL_StatusTypeDef SHT40_ReadHighPrecision(I2C_HandleTypeDef *hi2c, sht40_sample_t *out)
 {
@@ -9,7 +19,7 @@ HAL_StatusTypeDef SHT40_ReadHighPrecision(I2C_HandleTypeDef *hi2c, sht40_sample_
     if (st != HAL_OK) return st;
 
     // typical wait ~10ms from datasheet pseudo code
-    HAL_Delay(10);
+    sht40_delay_ms(10);
 
     uint8_t rx[6] = {0};
     st = HAL_I2C_Master_Receive(hi2c, SHT40_I2C_ADDR, rx, sizeof(rx), 100);

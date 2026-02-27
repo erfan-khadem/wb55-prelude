@@ -26,6 +26,7 @@
 #include "usbd_core.h"
 
 #include "usbd_cdc.h"
+#include "stm32wbxx_ll_hsem.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -83,6 +84,8 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
 
   /** Initializes the peripherals clock
   */
+    while(LL_HSEM_1StepLock(HSEM, CFG_HW_CLK48_CONFIG_SEMID));
+
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USB;
     PeriphClkInitStruct.PLLSAI1.PLLN = 6;
     PeriphClkInitStruct.PLLSAI1.PLLP = RCC_PLLP_DIV2;
@@ -111,7 +114,7 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
     __HAL_RCC_USB_CLK_ENABLE();
 
     /* Peripheral interrupt init */
-    HAL_NVIC_SetPriority(USB_LP_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(USB_LP_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(USB_LP_IRQn);
   /* USER CODE BEGIN USB_MspInit 1 */
 
@@ -141,6 +144,8 @@ void HAL_PCD_MspDeInit(PCD_HandleTypeDef* pcdHandle)
 
     /* Peripheral interrupt Deinit*/
     HAL_NVIC_DisableIRQ(USB_LP_IRQn);
+
+    LL_HSEM_ReleaseLock(HSEM, CFG_HW_CLK48_CONFIG_SEMID, 0);
 
   /* USER CODE BEGIN USB_MspDeInit 1 */
 

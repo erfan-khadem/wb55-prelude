@@ -1,9 +1,19 @@
 #include "usb_vcp.h"
 #include "usbd_cdc_if.h"
+#include "cmsis_os2.h"
 #include <stdarg.h>
 #include <stdio.h>
 
 volatile uint8_t g_usb_cdc_tx_ready = 1;
+
+static void usb_vcp_delay_ms(uint32_t delay_ms)
+{
+    if (osKernelGetState() == osKernelRunning) {
+        osDelay(delay_ms);
+    } else {
+        HAL_Delay(delay_ms);
+    }
+}
 
 void USBVCP_InitFlag(void)
 {
@@ -16,7 +26,7 @@ void USBVCP_Printf(const char *fmt, ...)
 
     // Wait until previous transfer completed
     while (!g_usb_cdc_tx_ready) {
-        HAL_Delay(1);
+        usb_vcp_delay_ms(1);
     }
 
     va_list args;
@@ -33,7 +43,7 @@ void USBVCP_Printf(const char *fmt, ...)
         if (ret == USBD_OK) {
             g_usb_cdc_tx_ready = 0; // will be set to 1 in CDC_TransmitCplt_FS
         } else {
-            HAL_Delay(1);
+            usb_vcp_delay_ms(1);
         }
     } while (ret != USBD_OK);
 }

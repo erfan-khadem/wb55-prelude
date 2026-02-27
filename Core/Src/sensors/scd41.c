@@ -1,6 +1,16 @@
 #include "scd41.h"
 #include "sensirion_crc.h"
 #include "usb_vcp.h"
+#include "cmsis_os2.h"
+
+static void scd41_delay_ms(uint32_t delay_ms)
+{
+    if (osKernelGetState() == osKernelRunning) {
+        osDelay(delay_ms);
+    } else {
+        HAL_Delay(delay_ms);
+    }
+}
 
 static HAL_StatusTypeDef scd41_send_cmd(I2C_HandleTypeDef *hi2c, uint16_t cmd)
 {
@@ -27,7 +37,7 @@ HAL_StatusTypeDef SCD41_StopPeriodic(I2C_HandleTypeDef *hi2c)
 {
     // stop_periodic_measurement: 0x3F86, then wait 500ms before other commands
     HAL_StatusTypeDef st = scd41_send_cmd(hi2c, 0x3F86);
-    HAL_Delay(500);
+    scd41_delay_ms(500);
     return st;
 }
 
@@ -39,7 +49,7 @@ HAL_StatusTypeDef SCD41_DataReady(I2C_HandleTypeDef *hi2c, uint8_t *ready)
     HAL_StatusTypeDef st = scd41_send_cmd(hi2c, 0xE4B8);
     if (st != HAL_OK) return st;
 
-    HAL_Delay(1);
+    scd41_delay_ms(1);
 
     uint8_t rx[3] = {0};
     st = HAL_I2C_Master_Receive(hi2c, SCD41_I2C_ADDR, rx, sizeof(rx), 100);
@@ -59,7 +69,7 @@ HAL_StatusTypeDef SCD41_ReadMeasurement(I2C_HandleTypeDef *hi2c, scd41_sample_t 
     HAL_StatusTypeDef st = scd41_send_cmd(hi2c, 0xEC05);
     if (st != HAL_OK) return st;
 
-    HAL_Delay(1);
+    scd41_delay_ms(1);
 
     uint8_t rx[9] = {0};
     st = HAL_I2C_Master_Receive(hi2c, SCD41_I2C_ADDR, rx, sizeof(rx), 100);
@@ -90,7 +100,7 @@ HAL_StatusTypeDef SCD41_PerformSelfTest(I2C_HandleTypeDef *hi2c) {
     HAL_StatusTypeDef st = scd41_send_cmd(hi2c, 0x3639);
     if (st != HAL_OK) return st;
 
-    HAL_Delay(10000);
+    scd41_delay_ms(10000);
     uint8_t rx[3] = {0};
     st = HAL_I2C_Master_Receive(hi2c, SCD41_I2C_ADDR, rx, sizeof(rx), 100);
     if (st != HAL_OK) return st;
@@ -112,12 +122,12 @@ HAL_StatusTypeDef SCD41_PerformSelfTest(I2C_HandleTypeDef *hi2c) {
 HAL_StatusTypeDef SCD41_SetAltitudePressure(I2C_HandleTypeDef *hi2c, uint16_t altitude_m, uint16_t pressure_hPa){
     // 0x2427 is set_sensor_altitude
     HAL_StatusTypeDef st = scd41_write_data(hi2c, 0x2427, altitude_m);
-    HAL_Delay(1);
+    scd41_delay_ms(1);
     if(st != HAL_OK) return st;
 
     // 0xe000 is set_ambient_pressure
     st = scd41_write_data(hi2c, 0x2427, pressure_hPa);
-    HAL_Delay(1);
+    scd41_delay_ms(1);
     if(st != HAL_OK) return st;
 
     return HAL_OK;
