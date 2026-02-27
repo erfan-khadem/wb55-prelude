@@ -53,6 +53,7 @@ void BusFault_Handler(void);
 void UsageFault_Handler(void);
 void DebugMon_Handler(void);
 void RTC_WKUP_IRQHandler(void);
+void EXTI3_IRQHandler(void);
 void USB_LP_IRQHandler(void);
 void TIM1_UP_TIM16_IRQHandler(void);
 void IPCC_C1_RX_IRQHandler(void);

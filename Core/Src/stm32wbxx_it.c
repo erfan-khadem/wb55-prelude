@@ -177,6 +177,21 @@ void RTC_WKUP_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles EXTI line3 interrupt.
+  */
+void EXTI3_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI3_IRQn 0 */
+
+  /* USER CODE END EXTI3_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(BOOT0_BTN_Pin);
+  /* USER CODE BEGIN EXTI3_IRQn 1 */
+  HAL_GPIO_TogglePin(GP1_GPIO_Port, GP1_Pin);
+
+  /* USER CODE END EXTI3_IRQn 1 */
+}
+
+/**
   * @brief This function handles USB low priority interrupt, USB wake-up interrupt through EXTI line 28.
   */
 void USB_LP_IRQHandler(void)

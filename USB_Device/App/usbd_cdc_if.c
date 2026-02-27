@@ -156,6 +156,7 @@ static int8_t CDC_Init_FS(void)
   /* Set Application Buffers */
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
+  USBVCP_SetTerminalReady(0U);
   return (USBD_OK);
   /* USER CODE END 3 */
 }
@@ -167,6 +168,8 @@ static int8_t CDC_Init_FS(void)
 static int8_t CDC_DeInit_FS(void)
 {
   /* USER CODE BEGIN 4 */
+  USBVCP_SetTerminalReady(0U);
+  USBVCP_OnTxComplete();
   return (USBD_OK);
   /* USER CODE END 4 */
 }
@@ -229,6 +232,11 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
     break;
 
     case CDC_SET_CONTROL_LINE_STATE:
+      {
+        const USBD_SetupReqTypedef *req = (const USBD_SetupReqTypedef *)pbuf;
+        uint8_t terminal_open = ((req->wValue & 0x0003U) != 0U) ? 1U : 0U; /* DTR or RTS */
+        USBVCP_SetTerminalReady(terminal_open);
+      }
 
     break;
 
@@ -283,8 +291,13 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 {
   uint8_t result = USBD_OK;
   /* USER CODE BEGIN 7 */
+  if ((hUsbDeviceFS.dev_state != USBD_STATE_CONFIGURED) ||
+      (hUsbDeviceFS.pClassData == NULL)) {
+    return USBD_FAIL;
+  }
+
   USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
-  if (hcdc->TxState != 0){
+  if (hcdc->TxState != 0U){
     return USBD_BUSY;
   }
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
@@ -313,7 +326,7 @@ static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
   UNUSED(Len);
   UNUSED(epnum);
 
-  g_usb_cdc_tx_ready = 1;
+  USBVCP_OnTxComplete();
   /* USER CODE END 13 */
   return result;
 }

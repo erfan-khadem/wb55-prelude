@@ -414,7 +414,7 @@
 /**
  * Enable/Disable USB interface
  */
-#define CFG_USB_INTERFACE_ENABLE    1
+#define CFG_USB_INTERFACE_ENABLE    0
 
 /******************************************************************************
  * IPCC interface

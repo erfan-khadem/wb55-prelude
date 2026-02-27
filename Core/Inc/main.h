@@ -63,6 +63,7 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define BOOT0_BTN_Pin GPIO_PIN_3
 #define BOOT0_BTN_GPIO_Port GPIOH
+#define BOOT0_BTN_EXTI_IRQn EXTI3_IRQn
 #define GP0_Pin GPIO_PIN_13
 #define GP0_GPIO_Port GPIOA
 #define GP1_Pin GPIO_PIN_14

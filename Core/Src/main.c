@@ -120,8 +120,8 @@ int main(void)
   MX_I2C1_Init();
   MX_RTC_Init();
   MX_RF_Init();
-  MX_USB_Device_Init();
   /* USER CODE BEGIN 2 */
+  MX_USB_Device_Init();
 
   /* USER CODE END 2 */
 
@@ -444,6 +444,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */
@@ -462,6 +466,8 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
+  /* init code for USB_Device */
+  //MX_USB_Device_Init();
   /* USER CODE BEGIN 5 */
   Sensors_Init();
   /* Infinite loop */
