@@ -35,7 +35,6 @@ void Sensors_Init(void)
     // Start SCD41 periodic measurement (CO2 + T/RH)
     // If the sensor was already running, stopping first is safe.
     (void)SCD41_StopPeriodic(&hi2c1);
-    /*
     if(SCD41_PerformSelfTest(&hi2c1) != HAL_OK) {
         for(int i = 0; i < 10; i++) {
             HAL_GPIO_TogglePin(GP1_GPIO_Port, GP1_Pin);
@@ -44,8 +43,6 @@ void Sensors_Init(void)
     } else {
         HAL_GPIO_TogglePin(GP0_GPIO_Port, GP0_Pin);
     }
-    */
-    HAL_GPIO_TogglePin(GP0_GPIO_Port, GP0_Pin);
     (void)SCD41_SetAltitudePressure(&hi2c1, 1250, 870); // for my place at Tehran
     (void)SCD41_StartPeriodic(&hi2c1);
 

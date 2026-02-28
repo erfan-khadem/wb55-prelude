@@ -97,6 +97,11 @@ HAL_StatusTypeDef SCD41_ReadMeasurement(I2C_HandleTypeDef *hi2c, scd41_sample_t 
 }
 
 HAL_StatusTypeDef SCD41_PerformSelfTest(I2C_HandleTypeDef *hi2c) {
+    /*
+    // Factor Reset (Command 0x3632)
+    scd41_send_cmd(hi2c, 0x3632);
+    scd41_delay_ms(1200);
+    */
     HAL_StatusTypeDef st = scd41_send_cmd(hi2c, 0x3639);
     if (st != HAL_OK) return st;
 
