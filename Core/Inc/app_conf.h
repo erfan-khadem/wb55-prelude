@@ -133,6 +133,8 @@
 #define CFG_USE_SMPS    0
 
 /* USER CODE BEGIN Generic_Parameters */
+#undef CFG_TX_POWER
+#define CFG_TX_POWER 0x1F
 
 /* USER CODE END Generic_Parameters */
 
