@@ -107,5 +107,4 @@ void Sensors_Task(void)
             }
         }
     }
-    app_delay_ms(100);
 }
