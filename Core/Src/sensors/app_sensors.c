@@ -30,7 +30,7 @@ static void print_x100(const char *label, int32_t v_x100)
 
 void Sensors_Init(void)
 {
-    USBVCP_InitFlag();
+    USBVCP_InitFlag(1U); // Enable Auto Flush
 
     // Start SCD41 periodic measurement (CO2 + T/RH)
     // If the sensor was already running, stopping first is safe.
@@ -107,4 +107,5 @@ void Sensors_Task(void)
             }
         }
     }
+    app_delay_ms(100);
 }

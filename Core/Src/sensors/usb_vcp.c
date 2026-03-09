@@ -6,13 +6,14 @@
 
 volatile uint8_t g_usb_cdc_tx_ready = 1;
 volatile uint8_t g_usb_cdc_terminal_ready = 0;
+volatile uint8_t g_usb_cdc_auto_flush = 1;
 
 static uint8_t g_usb_vcp_tx_active[256];
 static uint8_t g_usb_vcp_tx_pending[256];
 static uint8_t g_usb_vcp_format_buf[256];
 static uint16_t g_usb_vcp_tx_pending_len = 0;
 
-static void USBVCP_TryFlushPending(void)
+void USBVCP_TryFlushPending(void)
 {
     uint8_t ret;
 
@@ -28,23 +29,32 @@ static void USBVCP_TryFlushPending(void)
         g_usb_cdc_tx_ready = 0U;
         g_usb_vcp_tx_pending_len = 0U;
     }
+    return;
 }
 
-void USBVCP_InitFlag(void)
+void USBVCP_InitFlag(const uint8_t auto_flush)
 {
     g_usb_cdc_tx_ready = 1U;
     g_usb_cdc_terminal_ready = 0U;
     g_usb_vcp_tx_pending_len = 0U;
+    g_usb_cdc_auto_flush = auto_flush;
 }
 
 void USBVCP_Printf(const char *fmt, ...)
 {
+    BACKUP_PRIMASK();
+    DISABLE_IRQ();
+
     va_list args;
     va_start(args, fmt);
-    int n = vsnprintf((char*)g_usb_vcp_format_buf, sizeof(g_usb_vcp_format_buf), fmt, args);
+    int n = 0;
+    if(g_usb_vcp_tx_pending_len < sizeof(g_usb_vcp_format_buf)){
+        n = vsnprintf((char*)g_usb_vcp_format_buf + g_usb_vcp_tx_pending_len, sizeof(g_usb_vcp_format_buf) - g_usb_vcp_tx_pending_len, fmt, args);
+    }
     va_end(args);
 
     if (n <= 0) {
+        RESTORE_PRIMASK();
         return;
     }
 
@@ -52,10 +62,13 @@ void USBVCP_Printf(const char *fmt, ...)
         n = (int)sizeof(g_usb_vcp_format_buf) - 1;
     }
 
-    memcpy(g_usb_vcp_tx_pending, g_usb_vcp_format_buf, (uint16_t)n);
-    g_usb_vcp_tx_pending_len = (uint16_t)n;
+    memcpy(g_usb_vcp_tx_pending + g_usb_vcp_tx_pending_len, g_usb_vcp_format_buf + g_usb_vcp_tx_pending_len, (uint16_t)n);
+    g_usb_vcp_tx_pending_len += (uint16_t)n;
 
-    USBVCP_TryFlushPending();
+    if(g_usb_cdc_auto_flush){
+        USBVCP_TryFlushPending();
+    }
+    RESTORE_PRIMASK();
 }
 
 void USBVCP_SetTerminalReady(uint8_t ready)
@@ -66,7 +79,9 @@ void USBVCP_SetTerminalReady(uint8_t ready)
 void USBVCP_OnTxComplete(void)
 {
     g_usb_cdc_tx_ready = 1U;
-    USBVCP_TryFlushPending();
+    if(g_usb_cdc_auto_flush){
+        USBVCP_TryFlushPending();
+    }
 }
 
 uint8_t USBVCP_IsTerminalReady(void)

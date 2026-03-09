@@ -4,8 +4,10 @@
 
 extern volatile uint8_t g_usb_cdc_tx_ready;
 extern volatile uint8_t g_usb_cdc_terminal_ready;
+extern volatile uint8_t g_usb_cdc_auto_flush;
 
-void USBVCP_InitFlag(void);
+void USBVCP_InitFlag(const uint8_t auto_flush);
+void USBVCP_TryFlushPending(void);
 void USBVCP_Printf(const char *fmt, ...);
 void USBVCP_SetTerminalReady(uint8_t ready);
 void USBVCP_OnTxComplete(void);
