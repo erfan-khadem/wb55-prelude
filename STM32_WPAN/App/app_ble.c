@@ -67,6 +67,8 @@ static const osThreadAttr_t HciUserEvtProcess_attr =
   .stack_size = CFG_HCI_USER_EVT_PROCESS_STACK_SIZE
 };
 
+static uint8_t a_BdAddrUdn[BD_ADDR_SIZE];
+
 /* Private function prototypes -----------------------------------------------*/
 static void APP_BLE_SetDiscoverable(void);
 static void APP_BLE_CheckStatus(tBleStatus status);
@@ -77,6 +79,51 @@ static void APP_BLE_HciStatusNot(HCI_TL_CmdStatus_t status);
 static void HciUserEvtProcess(void *argument);
 
 /* Functions Definition ------------------------------------------------------*/
+
+const uint8_t* BleGetBdAddress(void)
+{
+  const uint8_t *p_bd_addr;
+  uint32_t udn;
+  uint32_t company_id;
+  uint32_t device_id;
+
+  udn = LL_FLASH_GetUDN();
+
+  if (udn != 0xFFFFFFFF)
+  {
+    company_id = LL_FLASH_GetSTCompanyID();
+    device_id = LL_FLASH_GetDeviceID();
+
+    /**
+     * Public Address with the ST company ID
+     * bit[47:24] : 24bits (OUI) equal to the company ID
+     * bit[23:16] : Device ID.
+     * bit[15:0] : The last 16bits from the UDN
+     * Note: In order to use the Public Address in a final product, a dedicated
+     * 24bits company ID (OUI) shall be bought.
+     */
+    a_BdAddrUdn[0] = (uint8_t)(udn & 0x000000FF);
+    a_BdAddrUdn[1] = (uint8_t)((udn & 0x0000FF00) >> 8);
+    a_BdAddrUdn[2] = (uint8_t)device_id;
+    a_BdAddrUdn[3] = (uint8_t)(company_id & 0x000000FF);
+    a_BdAddrUdn[4] = (uint8_t)((company_id & 0x0000FF00) >> 8);
+    a_BdAddrUdn[5] = (uint8_t)((company_id & 0x00FF0000) >> 16);
+
+    p_bd_addr = (const uint8_t *)a_BdAddrUdn;
+  }
+  else
+  {
+    uint64_t bd_addr_cfg = CFG_ADV_BD_ADDRESS;
+    for (uint32_t i = 0; i < CONFIG_DATA_PUBLIC_ADDRESS_LEN; i++)
+    {
+      a_BdAddrUdn[i] = (uint8_t)((bd_addr_cfg >> (8U * i)) & 0xFFU);
+    }
+    p_bd_addr = (const uint8_t *)a_BdAddrUdn;
+  }
+
+  return p_bd_addr;
+}
+
 void APP_BLE_Init(void)
 {
   SHCI_C2_Ble_Init_Cmd_Packet_t ble_init_cmd_packet = {0};
@@ -87,8 +134,9 @@ void APP_BLE_Init(void)
   uint16_t gap_appearance_char_handle;
   const uint8_t cfg_ble_er[16] = CFG_BLE_ER;
   const uint8_t cfg_ble_ir[16] = CFG_BLE_IR;
-  uint64_t bd_addr_cfg = CFG_ADV_BD_ADDRESS;
-  uint8_t bd_addr[CONFIG_DATA_PUBLIC_ADDRESS_LEN];
+  //uint64_t bd_addr_cfg = CFG_ADV_BD_ADDRESS;
+  //const uint8_t bd_addr[CONFIG_DATA_PUBLIC_ADDRESS_LEN];
+  const uint8_t *bd_addr;
 
   ble_init_cmd_packet.Param.pBleBufferAddress = 0;
   ble_init_cmd_packet.Param.BleBufferSize = 0;
@@ -130,10 +178,13 @@ void APP_BLE_Init(void)
   status = hci_reset();
   APP_BLE_CheckStatus(status);
 
+  /*
   for (uint32_t i = 0; i < CONFIG_DATA_PUBLIC_ADDRESS_LEN; i++)
   {
     bd_addr[i] = (uint8_t)((bd_addr_cfg >> (8U * i)) & 0xFFU);
   }
+  */
+  bd_addr = BleGetBdAddress();
 
   status = aci_hal_write_config_data(CONFIG_DATA_PUBLIC_ADDRESS_OFFSET,
                                      CONFIG_DATA_PUBLIC_ADDRESS_LEN,

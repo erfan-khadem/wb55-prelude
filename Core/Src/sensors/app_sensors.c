@@ -43,7 +43,7 @@ void Sensors_Init(void)
     } else {
         HAL_GPIO_TogglePin(GP0_GPIO_Port, GP0_Pin);
     }
-    (void)SCD41_SetAltitudePressure(&hi2c1, 1250, 870); // for my place at Tehran
+    (void)SCD41_SetAltitudePressure(&hi2c1, 1540, 840); // for my place at Tehran
     (void)SCD41_StartPeriodic(&hi2c1);
 
     USBVCP_Printf("Sensors init done.\r\n");
