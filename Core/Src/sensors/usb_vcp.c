@@ -54,6 +54,7 @@ void USBVCP_Printf(const char *fmt, ...)
     va_end(args);
 
     if (n <= 0) {
+        g_usb_vcp_tx_pending_len = 0;
         RESTORE_PRIMASK();
         return;
     }

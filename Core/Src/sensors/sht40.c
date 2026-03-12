@@ -19,7 +19,7 @@ HAL_StatusTypeDef SHT40_ReadHighPrecision(I2C_HandleTypeDef *hi2c, sht40_sample_
     if (st != HAL_OK) return st;
 
     // typical wait ~10ms from datasheet pseudo code
-    sht40_delay_ms(10);
+    sht40_delay_ms(15);
 
     uint8_t rx[6] = {0};
     st = HAL_I2C_Master_Receive(hi2c, SHT40_I2C_ADDR, rx, sizeof(rx), 100);

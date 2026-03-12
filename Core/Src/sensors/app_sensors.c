@@ -51,7 +51,7 @@ void Sensors_Init(void)
 
 void Sensors_Task(void)
 {
-    const uint32_t now = HAL_GetTick();
+    const uint32_t now = osKernelGetTickCount();
 
     // Read SHT40 + MLX90614 every 1000 ms
     if ((now - t_last_fast) >= 1000) {

@@ -435,7 +435,7 @@
  *  When set to 1, the low power mode is enable
  *  When set to 0, the device stays in RUN mode
  */
-#define CFG_LPM_SUPPORTED    0
+#define CFG_LPM_SUPPORTED    1
 
 /******************************************************************************
  * RTC interface
@@ -544,7 +544,7 @@ typedef enum
  * keep debugger enabled while in any low power mode when set to 1
  * should be set to 0 in production
  */
-#define CFG_DEBUGGER_SUPPORTED    1
+#define CFG_DEBUGGER_SUPPORTED    0
 
 /**
  * When set to 1, the traces are enabled in the BLE services
@@ -610,8 +610,6 @@ typedef enum
 #define MAX_DBG_TRACE_MSG_SIZE   1024
 
 /* USER CODE BEGIN Defines */
-#undef CFG_LPM_SUPPORTED
-#define CFG_LPM_SUPPORTED 1
 
 /* USER CODE END Defines */
 
